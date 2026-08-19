@@ -5,6 +5,7 @@ import AuditTrailPanel from "./components/AuditTrailPanel";
 import MapView from "./components/MapView";
 import PipelineControls from "./components/PipelineControls";
 import StatsDashboard from "./components/StatsDashboard";
+import UncertainPanel from "./components/UncertainPanel";
 import type { JobResult } from "./types";
 
 export default function App() {
@@ -105,6 +106,7 @@ export default function App() {
 
         <aside className="right-panel">
           <AlertsPanel alerts={result?.alerts ?? []} />
+          <UncertainPanel blobs={result?.blobs ?? []} pixelAreaSqm={result?.stats.pixel_area_sqm ?? null} />
           <AuditTrailPanel steps={result?.audit_trail ?? []} />
         </aside>
       </div>

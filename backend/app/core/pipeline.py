@@ -126,6 +126,7 @@ def run_pipeline(
         "classification_counts": counts,
         "alerts_generated": len(alert_list),
         "otsu_threshold": detection["threshold"],
+        "pixel_area_sqm": config.pixel_area_sqm,
     }
 
     return PipelineResult(

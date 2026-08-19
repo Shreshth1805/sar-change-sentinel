@@ -61,6 +61,7 @@ export interface PipelineStats {
   classification_counts: Record<Classification, number>;
   alerts_generated: number;
   otsu_threshold: number;
+  pixel_area_sqm: number | null;
 }
 
 export interface JobResult {
