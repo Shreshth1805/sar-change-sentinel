@@ -14,6 +14,8 @@ class SyntheticJobRequest(BaseModel):
     width: int = Field(default=200, ge=64, le=512)
     height: int = Field(default=200, ge=64, le=512)
     include_classifications: list[Classification] = ["man_made"]
+    origin_lat: float = Field(default=28.6139, ge=-90, le=90)
+    origin_lon: float = Field(default=77.2090, ge=-180, le=180)
 
 
 class GeeJobRequest(BaseModel):

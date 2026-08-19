@@ -68,6 +68,7 @@ export interface JobResult {
   status: JobStatus;
   aoi_name: string;
   data_source?: "gee" | "synthetic";
+  aoi_center?: [number, number];
   error?: string | null;
   geojson: ChangeFeatureCollection;
   alerts: Alert[];

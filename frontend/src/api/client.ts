@@ -21,6 +21,8 @@ export interface SyntheticJobRequest {
   width?: number;
   height?: number;
   include_classifications?: Classification[];
+  origin_lat?: number;
+  origin_lon?: number;
 }
 
 export function runSyntheticJob(body: SyntheticJobRequest): Promise<JobResult> {
@@ -66,6 +68,7 @@ export function geojsonDownloadUrl(jobId: string): string {
   return `${API_BASE}/api/jobs/${jobId}/geojson`;
 }
 
-export function getGeeStatus(): Promise<{ authenticated: boolean; message: string }> {
-  return request("/api/gee/status");
+export function getGeeStatus(project?: string): Promise<{ authenticated: boolean; message: string }> {
+  const qs = project ? `?project=${encodeURIComponent(project)}` : "";
+  return request(`/api/gee/status${qs}`);
 }

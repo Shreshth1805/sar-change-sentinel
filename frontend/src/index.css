@@ -148,6 +148,72 @@ textarea {
   gap: 10px;
 }
 
+.location-search {
+  margin-bottom: 4px;
+}
+
+.location-search-row {
+  display: flex;
+  gap: 6px;
+}
+
+.location-search-row input {
+  flex: 1;
+}
+
+.secondary-btn {
+  background: #2a3b4d;
+  color: var(--text);
+  border: none;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.location-results {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  background: #0d141b;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.location-result-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 7px 9px;
+  font-size: 11.5px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.location-result-btn:last-child {
+  border-bottom: none;
+}
+
+.location-result-btn:hover {
+  background: #16202b;
+}
+
+.location-selected {
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 6px;
+}
+
 .primary-btn {
   width: 100%;
   background: var(--accent);

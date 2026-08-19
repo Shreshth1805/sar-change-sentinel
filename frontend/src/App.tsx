@@ -12,7 +12,14 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleRunSynthetic(params: { aoiName: string; seed: number; width: number; height: number }) {
+  async function handleRunSynthetic(params: {
+    aoiName: string;
+    seed: number;
+    width: number;
+    height: number;
+    originLat: number;
+    originLon: number;
+  }) {
     setLoading(true);
     setError(null);
     try {
@@ -21,6 +28,8 @@ export default function App() {
         seed: params.seed,
         width: params.width,
         height: params.height,
+        origin_lat: params.originLat,
+        origin_lon: params.originLon,
       });
       setResult(r);
     } catch (e) {
@@ -37,6 +46,7 @@ export default function App() {
     preEnd: string;
     postStart: string;
     postEnd: string;
+    geeProjectId: string;
   }) {
     setLoading(true);
     setError(null);
@@ -48,6 +58,7 @@ export default function App() {
         pre_end: params.preEnd,
         post_start: params.postStart,
         post_end: params.postEnd,
+        gee_project: params.geeProjectId || undefined,
       });
       setResult(r);
     } catch (e) {
@@ -57,8 +68,11 @@ export default function App() {
     }
   }
 
-  const mapCenter: [number, number] | undefined =
-    result && result.alerts.length > 0 ? [result.alerts[0].centroid[1], result.alerts[0].centroid[0]] : undefined;
+  const mapCenter: [number, number] | undefined = result?.aoi_center
+    ? [result.aoi_center[1], result.aoi_center[0]]
+    : result && result.alerts.length > 0
+      ? [result.alerts[0].centroid[1], result.alerts[0].centroid[0]]
+      : undefined;
 
   return (
     <div className="app-shell">
