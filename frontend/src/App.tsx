@@ -4,6 +4,7 @@ import AlertsPanel from "./components/AlertsPanel";
 import AuditTrailPanel from "./components/AuditTrailPanel";
 import MapView from "./components/MapView";
 import PipelineControls from "./components/PipelineControls";
+import RadarLoader from "./components/RadarLoader";
 import StatsDashboard from "./components/StatsDashboard";
 import UncertainPanel from "./components/UncertainPanel";
 import type { JobResult } from "./types";
@@ -11,6 +12,7 @@ import type { JobResult } from "./types";
 export default function App() {
   const [result, setResult] = useState<JobResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingLabel, setLoadingLabel] = useState("scanning AOI");
   const [error, setError] = useState<string | null>(null);
 
   async function handleRunSynthetic(params: {
@@ -22,6 +24,7 @@ export default function App() {
     originLon: number;
   }) {
     setLoading(true);
+    setLoadingLabel("generating synthetic scene");
     setError(null);
     try {
       const r = await runSyntheticJob({
@@ -50,6 +53,7 @@ export default function App() {
     geeProjectId: string;
   }) {
     setLoading(true);
+    setLoadingLabel("querying Earth Engine");
     setError(null);
     try {
       const r = await runGeeJob({
@@ -79,13 +83,15 @@ export default function App() {
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-inner">
-          <svg className="brand-mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="46" stroke="var(--panel-border)" strokeWidth="2" />
-            <circle cx="50" cy="50" r="32" stroke="var(--accent)" strokeWidth="1.5" opacity="0.5" />
-            <circle cx="50" cy="50" r="18" stroke="var(--accent)" strokeWidth="1.5" opacity="0.7" />
-            <line x1="50" y1="50" x2="50" y2="6" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" />
-            <circle cx="50" cy="50" r="4" fill="var(--accent)" />
-          </svg>
+          <div className="brand-mark-wrap">
+            <svg className="brand-mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="46" stroke="var(--panel-border)" strokeWidth="2" />
+              <circle cx="50" cy="50" r="32" stroke="var(--accent)" strokeWidth="1.5" opacity="0.5" />
+              <circle cx="50" cy="50" r="18" stroke="var(--accent)" strokeWidth="1.5" opacity="0.7" />
+              <line x1="50" y1="50" x2="50" y2="6" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" />
+              <circle cx="50" cy="50" r="4" fill="var(--accent)" />
+            </svg>
+          </div>
           <div className="brand-text">
             <h1>SAR Change Sentinel</h1>
             <span className="brand-tag">
@@ -113,6 +119,7 @@ export default function App() {
 
         <main className="map-area">
           <MapView geojson={result?.geojson ?? null} center={mapCenter} />
+          {loading && <RadarLoader label={loadingLabel} />}
         </main>
 
         <aside className="right-panel">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { AuditStep } from "../types";
+import Tilt from "./Tilt";
 
 interface Props {
   steps: AuditStep[];
@@ -13,7 +14,7 @@ export default function AuditTrailPanel({ steps }: Props) {
   }
 
   return (
-    <div className="panel audit-panel">
+    <Tilt className="panel audit-panel" max={3}>
       <h3>Audit Trail</h3>
       <p className="audit-intro">Every pipeline stage, in order, with exactly what it did — nothing is silent.</p>
       <ol className="audit-list">
@@ -39,6 +40,6 @@ export default function AuditTrailPanel({ steps }: Props) {
           </li>
         ))}
       </ol>
-    </div>
+    </Tilt>
   );
 }

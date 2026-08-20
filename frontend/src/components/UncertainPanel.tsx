@@ -1,8 +1,29 @@
+import { useTilt } from "../hooks/useTilt";
 import type { Blob } from "../types";
+import Tilt from "./Tilt";
 
 interface Props {
   blobs: Blob[];
   pixelAreaSqm: number | null;
+}
+
+function UncertainItem({ b, pixelAreaSqm }: { b: Blob; pixelAreaSqm: number | null }) {
+  const { ref, onMouseMove, onMouseLeave } = useTilt<HTMLLIElement>(4);
+  return (
+    <li ref={ref} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave} className="alert-item uncertain-item">
+      <div className="alert-row-top">
+        <span className="alert-area">
+          {pixelAreaSqm != null ? `${Math.round(b.area_px * pixelAreaSqm).toLocaleString()} m²` : `${b.area_px} px`}
+        </span>
+        <span className="alert-confidence">{(b.confidence * 100).toFixed(0)}%</span>
+      </div>
+      <ul className="uncertain-reasons">
+        {b.reasons.map((r, i) => (
+          <li key={i}>{r}</li>
+        ))}
+      </ul>
+    </li>
+  );
 }
 
 export default function UncertainPanel({ blobs, pixelAreaSqm }: Props) {
@@ -13,7 +34,7 @@ export default function UncertainPanel({ blobs, pixelAreaSqm }: Props) {
   }
 
   return (
-    <div className="panel uncertain-panel">
+    <Tilt className="panel uncertain-panel" max={3}>
       <h3>
         Uncertain <span className="badge badge-uncertain">{uncertain.length}</span>
       </h3>
@@ -23,21 +44,9 @@ export default function UncertainPanel({ blobs, pixelAreaSqm }: Props) {
       </p>
       <ul className="alert-list">
         {uncertain.map((b) => (
-          <li key={b.label} className="alert-item uncertain-item">
-            <div className="alert-row-top">
-              <span className="alert-area">
-                {pixelAreaSqm != null ? `${Math.round(b.area_px * pixelAreaSqm).toLocaleString()} m²` : `${b.area_px} px`}
-              </span>
-              <span className="alert-confidence">{(b.confidence * 100).toFixed(0)}%</span>
-            </div>
-            <ul className="uncertain-reasons">
-              {b.reasons.map((r, i) => (
-                <li key={i}>{r}</li>
-              ))}
-            </ul>
-          </li>
+          <UncertainItem key={b.label} b={b} pixelAreaSqm={pixelAreaSqm} />
         ))}
       </ul>
-    </div>
+    </Tilt>
   );
 }
