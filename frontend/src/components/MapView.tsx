@@ -39,29 +39,47 @@ function bindPopup(feature: Feature, layer: Layer) {
 
 /** react-leaflet's `center`/`zoom` props on MapContainer only apply on the
  * initial mount — they're silently ignored on every prop update after that.
- * This imperatively pans the already-mounted map whenever `center` changes. */
-function RecenterOnChange({ center, zoom }: { center: [number, number]; zoom: number }) {
+ * This imperatively pans/fits the already-mounted map whenever the target
+ * changes. `bounds` (a region job's full tile-grid extent) takes priority
+ * over `center`/`zoom` (a single-point AOI) when both are present. */
+function RecenterOnChange({
+  center,
+  zoom,
+  bounds,
+}: {
+  center: [number, number];
+  zoom: number;
+  bounds?: [[number, number], [number, number]];
+}) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
+    if (bounds) {
+      map.fitBounds(bounds, { padding: [24, 24] });
+    } else {
+      map.setView(center, zoom);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center, zoom, bounds, map]);
   return null;
 }
 
 interface Props {
   geojson: ChangeFeatureCollection | null;
   center?: [number, number];
+  /** [[south, west], [north, east]] — when set (region/tiled jobs), the map
+   * fits this whole extent instead of centering on one point. */
+  bounds?: [[number, number], [number, number]];
   /** Unique id of the current job/run — used to force the GeoJSON layer to
    * redraw with fresh data, since react-leaflet's <GeoJSON> doesn't react to
    * `data` prop changes on its own. */
   jobId?: string;
 }
 
-export default function MapView({ geojson, center, jobId }: Props) {
+export default function MapView({ geojson, center, bounds, jobId }: Props) {
   const resolvedCenter = center ?? DEFAULT_CENTER;
   return (
     <MapContainer center={resolvedCenter} zoom={15} className="map-container">
-      <RecenterOnChange center={resolvedCenter} zoom={15} />
+      <RecenterOnChange center={resolvedCenter} zoom={15} bounds={bounds} />
       <TileLayer
         attribution='&copy; <a href="https://www.esri.com/">Esri</a> World Imagery'
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"

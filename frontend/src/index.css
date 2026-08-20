@@ -462,6 +462,30 @@ textarea {
   color: var(--text-dim);
 }
 
+.region-box {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px dashed var(--panel-border);
+  border-radius: 1px;
+  background: rgba(255, 138, 61, 0.03);
+}
+
+.region-box-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.region-box-estimate {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
 .link-btn {
   background: none;
   border: none;

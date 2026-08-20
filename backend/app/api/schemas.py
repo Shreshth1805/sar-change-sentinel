@@ -29,3 +29,24 @@ class GeeJobRequest(BaseModel):
     scale_m: float = 10.0
     gee_project: str | None = None
     include_classifications: list[Classification] = ["man_made"]
+
+
+class SyntheticRegionJobRequest(BaseModel):
+    aoi_name: str
+    aoi_geojson: dict  # bounding polygon of the whole region (e.g. a real city/state boundary)
+    base_seed: int | None = 42
+    tile_km: float = Field(default=6.0, ge=2.0, le=12.0)
+    include_classifications: list[Classification] = ["man_made"]
+
+
+class GeeRegionJobRequest(BaseModel):
+    aoi_name: str
+    aoi_geojson: dict
+    pre_start: date
+    pre_end: date
+    post_start: date
+    post_end: date
+    scale_m: float = 10.0
+    gee_project: str | None = None
+    tile_km: float = Field(default=6.0, ge=2.0, le=12.0)
+    include_classifications: list[Classification] = ["man_made"]

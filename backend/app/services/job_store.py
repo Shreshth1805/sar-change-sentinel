@@ -29,6 +29,7 @@ class ChangeDetectionJob:
     result: PipelineResult | None = None
     error: str | None = None
     completed_at: datetime | None = None
+    region_meta: dict[str, Any] | None = None
 
 
 class JobStore:
@@ -53,10 +54,11 @@ class JobStore:
     def mark_running(self, job_id: str) -> None:
         self._jobs[job_id].status = "running"
 
-    def mark_completed(self, job_id: str, result: PipelineResult) -> None:
+    def mark_completed(self, job_id: str, result: PipelineResult, region_meta: dict[str, Any] | None = None) -> None:
         job = self._jobs[job_id]
         job.status = "completed"
         job.result = result
+        job.region_meta = region_meta
         job.completed_at = datetime.now(timezone.utc)
 
     def mark_failed(self, job_id: str, error: str) -> None:

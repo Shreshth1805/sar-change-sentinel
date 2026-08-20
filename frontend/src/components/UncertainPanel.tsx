@@ -7,6 +7,10 @@ interface Props {
   pixelAreaSqm: number | null;
 }
 
+// See AlertsPanel — same reasoning: region jobs can merge blobs from many
+// tiles, so the list is capped rather than rendering everything.
+const MAX_VISIBLE_UNCERTAIN = 150;
+
 function UncertainItem({ b, pixelAreaSqm }: { b: Blob; pixelAreaSqm: number | null }) {
   const { ref, onMouseMove, onMouseLeave } = useTilt<HTMLLIElement>(4);
   return (
@@ -33,6 +37,9 @@ export default function UncertainPanel({ blobs, pixelAreaSqm }: Props) {
     return null;
   }
 
+  const visible = uncertain.slice(0, MAX_VISIBLE_UNCERTAIN);
+  const hiddenCount = uncertain.length - visible.length;
+
   return (
     <Tilt className="panel uncertain-panel" max={3}>
       <h3>
@@ -43,10 +50,11 @@ export default function UncertainPanel({ blobs, pixelAreaSqm }: Props) {
         didn't force a call either way. Not included in alerts or the GeoJSON export.
       </p>
       <ul className="alert-list">
-        {uncertain.map((b) => (
-          <UncertainItem key={b.label} b={b} pixelAreaSqm={pixelAreaSqm} />
+        {visible.map((b) => (
+          <UncertainItem key={`${b.tile_index ?? 0}-${b.label}`} b={b} pixelAreaSqm={pixelAreaSqm} />
         ))}
       </ul>
+      {hiddenCount > 0 && <div className="hint">+{hiddenCount.toLocaleString()} more not shown.</div>}
     </Tilt>
   );
 }

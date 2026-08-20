@@ -52,6 +52,41 @@ export function runGeeJob(body: GeeJobRequest): Promise<JobResult> {
   });
 }
 
+export interface SyntheticRegionJobRequest {
+  aoi_name: string;
+  aoi_geojson: Record<string, unknown>;
+  base_seed?: number;
+  tile_km?: number;
+  include_classifications?: Classification[];
+}
+
+export function runSyntheticRegionJob(body: SyntheticRegionJobRequest): Promise<JobResult> {
+  return request<JobResult>("/api/jobs/synthetic/region", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export interface GeeRegionJobRequest {
+  aoi_name: string;
+  aoi_geojson: Record<string, unknown>;
+  pre_start: string;
+  pre_end: string;
+  post_start: string;
+  post_end: string;
+  scale_m?: number;
+  gee_project?: string;
+  tile_km?: number;
+  include_classifications?: Classification[];
+}
+
+export function runGeeRegionJob(body: GeeRegionJobRequest): Promise<JobResult> {
+  return request<JobResult>("/api/jobs/gee/region", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export function listJobs(): Promise<JobSummary[]> {
   return request<JobSummary[]>("/api/jobs");
 }

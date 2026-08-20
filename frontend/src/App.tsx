@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { runGeeJob, runSyntheticJob, geojsonDownloadUrl } from "./api/client";
+import { runGeeJob, runGeeRegionJob, runSyntheticJob, runSyntheticRegionJob, geojsonDownloadUrl } from "./api/client";
 import AlertsPanel from "./components/AlertsPanel";
 import AuditTrailPanel from "./components/AuditTrailPanel";
 import MapView from "./components/MapView";
 import PipelineControls from "./components/PipelineControls";
 import RadarLoader from "./components/RadarLoader";
+import RegionSummary from "./components/RegionSummary";
 import StatsDashboard from "./components/StatsDashboard";
 import UncertainPanel from "./components/UncertainPanel";
 import type { JobResult } from "./types";
@@ -45,6 +46,30 @@ export default function App() {
     }
   }
 
+  async function handleRunSyntheticRegion(params: {
+    aoiName: string;
+    aoiGeojson: Record<string, unknown>;
+    baseSeed: number;
+    tileKm: number;
+  }) {
+    setLoading(true);
+    setLoadingLabel("tiling region + generating scenes");
+    setError(null);
+    try {
+      const r = await runSyntheticRegionJob({
+        aoi_name: params.aoiName,
+        aoi_geojson: params.aoiGeojson,
+        base_seed: params.baseSeed,
+        tile_km: params.tileKm,
+      });
+      setResult(r);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleRunGee(params: {
     aoiName: string;
     aoiGeojson: Record<string, unknown>;
@@ -75,11 +100,52 @@ export default function App() {
     }
   }
 
+  async function handleRunGeeRegion(params: {
+    aoiName: string;
+    aoiGeojson: Record<string, unknown>;
+    preStart: string;
+    preEnd: string;
+    postStart: string;
+    postEnd: string;
+    geeProjectId: string;
+    tileKm: number;
+  }) {
+    setLoading(true);
+    setLoadingLabel("tiling region + querying Earth Engine (this can take a while)");
+    setError(null);
+    try {
+      const r = await runGeeRegionJob({
+        aoi_name: params.aoiName,
+        aoi_geojson: params.aoiGeojson,
+        pre_start: params.preStart,
+        pre_end: params.preEnd,
+        post_start: params.postStart,
+        post_end: params.postEnd,
+        gee_project: params.geeProjectId || undefined,
+        tile_km: params.tileKm,
+      });
+      setResult(r);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const mapCenter: [number, number] | undefined = result?.aoi_center
     ? [result.aoi_center[1], result.aoi_center[0]]
     : result && result.alerts.length > 0
       ? [result.alerts[0].centroid[1], result.alerts[0].centroid[0]]
       : undefined;
+
+  // Region jobs cover an area, not a point — fit the whole grid's extent
+  // instead of centering on one coordinate.
+  const mapBounds: [[number, number], [number, number]] | undefined = result?.region
+    ? [
+        [result.region.bounds[1], result.region.bounds[0]],
+        [result.region.bounds[3], result.region.bounds[2]],
+      ]
+    : undefined;
 
   return (
     <div className="app-shell">
@@ -112,15 +178,18 @@ export default function App() {
         <aside className="sidebar">
           <PipelineControls
             onRunSynthetic={handleRunSynthetic}
+            onRunSyntheticRegion={handleRunSyntheticRegion}
             onRunGee={handleRunGee}
+            onRunGeeRegion={handleRunGeeRegion}
             loading={loading}
             errorMessage={error}
           />
           <StatsDashboard stats={result?.stats ?? null} />
+          <RegionSummary region={result?.region ?? null} />
         </aside>
 
         <main className="map-area">
-          <MapView geojson={result?.geojson ?? null} center={mapCenter} jobId={result?.job_id} />
+          <MapView geojson={result?.geojson ?? null} center={mapCenter} bounds={mapBounds} jobId={result?.job_id} />
           {loading && <RadarLoader label={loadingLabel} />}
         </main>
 
