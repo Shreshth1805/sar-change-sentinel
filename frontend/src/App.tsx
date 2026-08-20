@@ -78,8 +78,20 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
-          <h1>SAR Change Sentinel</h1>
+        <div className="app-header-inner">
+          <svg className="brand-mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="46" stroke="var(--panel-border)" strokeWidth="2" />
+            <circle cx="50" cy="50" r="32" stroke="var(--accent)" strokeWidth="1.5" opacity="0.5" />
+            <circle cx="50" cy="50" r="18" stroke="var(--accent)" strokeWidth="1.5" opacity="0.7" />
+            <line x1="50" y1="50" x2="50" y2="6" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" />
+            <circle cx="50" cy="50" r="4" fill="var(--accent)" />
+          </svg>
+          <div className="brand-text">
+            <h1>SAR Change Sentinel</h1>
+            <span className="brand-tag">
+              <span className="dot" /> {result ? `job ${result.job_id.slice(0, 8)}` : "awaiting run"}
+            </span>
+          </div>
         </div>
         {result && (
           <a className="download-btn" href={geojsonDownloadUrl(result.job_id)} download>
