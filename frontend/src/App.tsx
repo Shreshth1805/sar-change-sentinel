@@ -80,7 +80,6 @@ export default function App() {
       <header className="app-header">
         <div>
           <h1>SAR Change Sentinel</h1>
-          <p>Automatic man-made change detection in Sentinel-1 SAR imagery — NTRO problem statement</p>
         </div>
         {result && (
           <a className="download-btn" href={geojsonDownloadUrl(result.job_id)} download>
