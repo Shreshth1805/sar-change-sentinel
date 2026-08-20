@@ -23,6 +23,7 @@ export interface SyntheticJobRequest {
   include_classifications?: Classification[];
   origin_lat?: number;
   origin_lon?: number;
+  num_structures?: number;
 }
 
 export function runSyntheticJob(body: SyntheticJobRequest): Promise<JobResult> {

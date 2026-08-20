@@ -11,11 +11,12 @@ Classification = Literal["man_made", "natural", "uncertain"]
 class SyntheticJobRequest(BaseModel):
     aoi_name: str = "Demo AOI (New Delhi)"
     seed: int | None = 42
-    width: int = Field(default=200, ge=64, le=512)
-    height: int = Field(default=200, ge=64, le=512)
+    width: int = Field(default=200, ge=64, le=1200)
+    height: int = Field(default=200, ge=64, le=1200)
     include_classifications: list[Classification] = ["man_made"]
     origin_lat: float = Field(default=28.6139, ge=-90, le=90)
     origin_lon: float = Field(default=77.2090, ge=-180, le=180)
+    num_structures: int = Field(default=3, ge=1, le=12)
 
 
 class GeeJobRequest(BaseModel):

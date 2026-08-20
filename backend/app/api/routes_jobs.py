@@ -27,6 +27,7 @@ def create_synthetic_job(body: SyntheticJobRequest):
             seed=body.seed,
             origin_lon=body.origin_lon,
             origin_lat=body.origin_lat,
+            num_structures=body.num_structures,
         )
         config = PipelineConfig(
             pixel_area_sqm=100.0,  # 10m x 10m Sentinel-1-like pixels

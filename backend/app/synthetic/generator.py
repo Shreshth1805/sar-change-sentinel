@@ -67,10 +67,18 @@ def generate_scene(
     seed: int | None = 42,
     origin_lon: float = 77.2090,
     origin_lat: float = 28.6139,
+    num_structures: int = 3,
 ) -> SyntheticScene:
     """Generate a synthetic before/after Sentinel-1-like VV+VH scene pair
     centered near the given lon/lat (default: New Delhi), with injected
     man-made and natural changes and matching ancillary masks.
+
+    `num_structures` scatters that many independent new-structure blobs
+    across the frame (positions still drawn from `rng`, so a larger AOI
+    with more structures reads as "multiple regions changed" rather than
+    one blob repeated) — the natural change footprints (flood/vegetation)
+    stay fixed regardless, since they're meant to represent one existing
+    water body / vegetation patch in the scene, not scale with AOI size.
     """
     rng = np.random.default_rng(seed)
     h, w = shape
@@ -101,7 +109,7 @@ def generate_scene(
     ground_truth = []
 
     # --- inject man-made changes: compact bright rectangles (new structures) ---
-    for i in range(3):
+    for i in range(num_structures):
         rh, rw = rng.integers(6, 14), rng.integers(6, 14)
         r0 = rng.integers(10, h - rh - 10)
         c0 = rng.integers(10, w - rw - 10)

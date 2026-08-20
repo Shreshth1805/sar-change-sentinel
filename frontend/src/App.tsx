@@ -22,6 +22,7 @@ export default function App() {
     height: number;
     originLat: number;
     originLon: number;
+    numStructures: number;
   }) {
     setLoading(true);
     setLoadingLabel("generating synthetic scene");
@@ -34,6 +35,7 @@ export default function App() {
         height: params.height,
         origin_lat: params.originLat,
         origin_lon: params.originLon,
+        num_structures: params.numStructures,
       });
       setResult(r);
     } catch (e) {

@@ -5,6 +5,18 @@ import LocationSearch from "./LocationSearch";
 
 const DEFAULT_LAT = 28.6139; // New Delhi
 const DEFAULT_LON = 77.209;
+const DEFAULT_RADIUS_KM = 3;
+// 10m/px (Sentinel-1-like); cap keeps the local pipeline snappy (~1s at the max).
+const METERS_PER_PIXEL = 10;
+const MAX_RADIUS_KM = 6;
+
+function randomSeed(): number {
+  return Math.floor(Math.random() * 1_000_000);
+}
+
+function structuresForRadius(radiusKm: number): number {
+  return Math.min(12, Math.max(3, Math.round(radiusKm * 1.5)));
+}
 
 interface Props {
   onRunSynthetic: (params: {
@@ -14,6 +26,7 @@ interface Props {
     height: number;
     originLat: number;
     originLon: number;
+    numStructures: number;
   }) => void;
   onRunGee: (params: {
     aoiName: string;
@@ -28,7 +41,7 @@ interface Props {
   errorMessage: string | null;
 }
 
-const EXAMPLE_AOI = JSON.stringify(bboxAroundPoint(DEFAULT_LAT, DEFAULT_LON), null, 2);
+const EXAMPLE_AOI = JSON.stringify(bboxAroundPoint(DEFAULT_LAT, DEFAULT_LON, DEFAULT_RADIUS_KM), null, 2);
 
 function shortName(displayName: string): string {
   return displayName.split(",")[0].trim();
@@ -37,7 +50,7 @@ function shortName(displayName: string): string {
 export default function PipelineControls({ onRunSynthetic, onRunGee, loading, errorMessage }: Props) {
   const [aoiName, setAoiName] = useState("Demo AOI (New Delhi)");
   const [seed, setSeed] = useState(42);
-  const [size, setSize] = useState(200);
+  const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [location, setLocation] = useState<GeocodeResult | null>(null);
 
   const [geeStatus, setGeeStatus] = useState<{ authenticated: boolean; message: string } | null>(null);
@@ -64,6 +77,15 @@ export default function PipelineControls({ onRunSynthetic, onRunGee, loading, er
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep the GEE AOI box in sync with the current location + radius, so
+  // dragging the radius slider updates it too, not just a fresh search.
+  useEffect(() => {
+    const lat = location?.lat ?? DEFAULT_LAT;
+    const lon = location?.lon ?? DEFAULT_LON;
+    setAoiGeojsonText(JSON.stringify(bboxAroundPoint(lat, lon, radiusKm), null, 2));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, radiusKm]);
+
   function handleProjectIdChange(value: string) {
     setGeeProjectId(value);
     localStorage.setItem("geeProjectId", value);
@@ -72,8 +94,11 @@ export default function PipelineControls({ onRunSynthetic, onRunGee, loading, er
   function handleLocationSelect(place: GeocodeResult) {
     setLocation(place);
     setAoiName(`${shortName(place.displayName)} AOI`);
-    setAoiGeojsonText(JSON.stringify(bboxAroundPoint(place.lat, place.lon), null, 2));
+    setSeed(randomSeed()); // otherwise every city shows the exact same injected pattern
   }
+
+  const sizePx = Math.round((radiusKm * 2 * 1000) / METERS_PER_PIXEL);
+  const numStructures = structuresForRadius(radiusKm);
 
   function submitGee() {
     try {
@@ -99,17 +124,22 @@ export default function PipelineControls({ onRunSynthetic, onRunGee, loading, er
       <div className="controls-row">
         <label>
           Seed
-          <input type="number" value={seed} onChange={(e) => setSeed(Number(e.target.value))} />
+          <div className="location-search-row">
+            <input type="number" value={seed} onChange={(e) => setSeed(Number(e.target.value))} />
+            <button className="secondary-btn" onClick={() => setSeed(randomSeed())} title="Randomize pattern">
+              🎲
+            </button>
+          </div>
         </label>
         <label>
-          Size (px)
+          Coverage radius (km)
           <input
             type="number"
-            min={64}
-            max={512}
-            step={16}
-            value={size}
-            onChange={(e) => setSize(Number(e.target.value))}
+            min={1}
+            max={MAX_RADIUS_KM}
+            step={0.5}
+            value={radiusKm}
+            onChange={(e) => setRadiusKm(Math.min(MAX_RADIUS_KM, Math.max(1, Number(e.target.value))))}
           />
         </label>
       </div>
@@ -121,19 +151,22 @@ export default function PipelineControls({ onRunSynthetic, onRunGee, loading, er
           onRunSynthetic({
             aoiName,
             seed,
-            width: size,
-            height: size,
+            width: sizePx,
+            height: sizePx,
             originLat: location?.lat ?? DEFAULT_LAT,
             originLon: location?.lon ?? DEFAULT_LON,
+            numStructures,
           })
         }
       >
         {loading ? "Running…" : "Run Demo Scene"}
       </button>
       <p className="hint">
-        Generates a synthetic Sentinel-1-like scene centered on the searched location (or New Delhi by
-        default), with injected new structures, a flood, and vegetation growth — runs entirely locally, no
-        Earth Engine account needed.
+        Generates a synthetic Sentinel-1-like scene covering a {(radiusKm * 2).toFixed(1)}km-wide area
+        centered on the searched location (or New Delhi by default), scattering {numStructures} injected new
+        structures across it alongside a flood and vegetation growth — runs entirely locally, no Earth Engine
+        account needed. The seed randomizes on every new search so different cities don't show the identical
+        pattern; use 🎲 to reroll the current one.
       </p>
 
       {errorMessage && <div className="error-banner">{errorMessage}</div>}
@@ -182,8 +215,10 @@ export default function PipelineControls({ onRunSynthetic, onRunGee, loading, er
             project picker (top-left) and paste it above.
           </p>
           <p className="hint">
-            Search a city or country above to auto-fill a ~3km AOI box below, or paste your own GeoJSON
-            polygon.
+            AOI box tracks the coverage radius above ({(radiusKm * 2).toFixed(1)}km wide) — search a city or
+            adjust the radius to resize it, or paste your own GeoJSON polygon. A single request can't safely
+            cover an entire city or state at once (that's hundreds of megapixels of real Sentinel-1 data); for
+            that you'd tile it into several AOI-sized requests like this one rather than one giant call.
           </p>
           <label>
             AOI geometry (GeoJSON Polygon)
