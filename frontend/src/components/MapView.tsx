@@ -1,4 +1,5 @@
-import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { Layer, PathOptions } from "leaflet";
 import type { Feature } from "geojson";
 import type { ChangeFeatureCollection, Classification } from "../types";
@@ -36,26 +37,43 @@ function bindPopup(feature: Feature, layer: Layer) {
   layer.bindPopup(html);
 }
 
+/** react-leaflet's `center`/`zoom` props on MapContainer only apply on the
+ * initial mount — they're silently ignored on every prop update after that.
+ * This imperatively pans the already-mounted map whenever `center` changes. */
+function RecenterOnChange({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [center, zoom, map]);
+  return null;
+}
+
 interface Props {
   geojson: ChangeFeatureCollection | null;
   center?: [number, number];
+  /** Unique id of the current job/run — used to force the GeoJSON layer to
+   * redraw with fresh data, since react-leaflet's <GeoJSON> doesn't react to
+   * `data` prop changes on its own. */
+  jobId?: string;
 }
 
-export default function MapView({ geojson, center }: Props) {
+export default function MapView({ geojson, center, jobId }: Props) {
+  const resolvedCenter = center ?? DEFAULT_CENTER;
   return (
-    <MapContainer
-      center={center ?? DEFAULT_CENTER}
-      zoom={15}
-      className="map-container"
-      key={geojson ? JSON.stringify(geojson.features.length) : "empty"}
-    >
+    <MapContainer center={resolvedCenter} zoom={15} className="map-container">
+      <RecenterOnChange center={resolvedCenter} zoom={15} />
       <TileLayer
         attribution='&copy; <a href="https://www.esri.com/">Esri</a> World Imagery'
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
       />
       {geojson && geojson.features.length > 0 && (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <GeoJSON data={geojson as any} style={styleForFeature} onEachFeature={bindPopup} />
+        <GeoJSON
+          key={jobId ?? "empty"}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data={geojson as any}
+          style={styleForFeature}
+          onEachFeature={bindPopup}
+        />
       )}
     </MapContainer>
   );

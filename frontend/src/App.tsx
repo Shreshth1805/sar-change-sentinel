@@ -118,7 +118,7 @@ export default function App() {
         </aside>
 
         <main className="map-area">
-          <MapView geojson={result?.geojson ?? null} center={mapCenter} />
+          <MapView geojson={result?.geojson ?? null} center={mapCenter} jobId={result?.job_id} />
           {loading && <RadarLoader label={loadingLabel} />}
         </main>
 
